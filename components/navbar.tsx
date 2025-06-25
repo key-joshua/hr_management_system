@@ -1,11 +1,24 @@
 "use client"
 
-import React, { useState } from "react"
+import { authVerify } from "@/libs/utils/utils"
+import React, { useEffect, useState } from "react"
 import { Search, ChevronDown } from "lucide-react"
+
+type User = { username?: string; profile_picture ?: string; };
 
 export function Navbar() {
     const [error, setError] = useState("");
     const [search, setSearch] = useState("");
+    const [user, setUsr] = useState<User>({});
+
+      useEffect(() => {
+        const getUserProfile = async () => {
+          const { user }: any = await authVerify();
+          setUsr(user);
+        }
+    
+        getUserProfile();
+      }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setError("");
@@ -35,8 +48,8 @@ export function Navbar() {
 
         <div className="flex items-center">
           <button className="p-2 text-sm space-x-3 flex items-center hover:bg-primary-micro-active hover:rounded-3xl transition-colors">
-            <img src="/admin-avatar.png" alt="User Avatar" className="h-8 w-8 rounded-full object-cover" />
-            <span className="text-primary-active font-medium">Jane Doe</span>
+            <img src= {user?.profile_picture || "/admin-avatar.png" } alt="User Avatar" className="h-8 w-8 rounded-full object-cover" />
+            <span className="text-primary-active font-medium">{user?.username}</span>
             <ChevronDown className="w-4 h-4 text-gray-500" />
           </button>
         </div>

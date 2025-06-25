@@ -1,6 +1,7 @@
 
 import { twMerge } from "tailwind-merge"
 import { type ClassValue, clsx } from "clsx"
+import { UserSession } from "@/types/auth.interface";
 
 export const encrypt = (data: string) => {
   try {
@@ -26,57 +27,66 @@ export const generateDeviceId = (digits = 12) => {
   return deviceId.slice(0, digits);
 };
 
-export const authVerify = async () => {
+export const getAuthSessions = (): {
+  session: UserSession,
+  device: string
+} | null => {
+  const authSessionData = localStorage.getItem("auth_session_data");
+  const userDevice = localStorage.getItem("user_device");
+
+  if (!authSessionData || !userDevice) return null;
+
+  const decryptedSession = decrypt(authSessionData);
+  const decryptedDevice = decrypt(userDevice);
+
+  const parsedSession = JSON.parse(decryptedSession) as UserSession;
+
+  if (!parsedSession?.access_token) {
+    return null;
+  }
+
+  return {
+    session: parsedSession,
+    device: decryptedDevice
+  };
+};
+
+export const clearAuthData = (): void => {
+  localStorage.removeItem("auth_session_data");
+  localStorage.removeItem("user_device");
+};
+
+export const authVerify = async (): Promise<{
+  session: UserSession | null;
+  user: any | null;
+  status: 'authenticated' | 'unauthenticated'
+}> => {
   try {
-    const userDevice = localStorage.getItem("user_device");
-    const authSessionData = localStorage.getItem("auth_session_data");
+    const authSessions = getAuthSessions();
 
-    if (!authSessionData) {
-      localStorage.clear();
-      window.location.replace("/");
-      return;
+    if (!authSessions) {
+      clearAuthData();
+      return { status: 'unauthenticated', user: null, session: null };
     }
 
-    if (!userDevice) {
-      localStorage.clear();
-      window.location.replace("/");
-      return;
-    }
+    const headers: HeadersInit = {
+      Authorization: `Bearer ${authSessions.session.access_token}`,
+      'User-Device': authSessions.device
+    };
 
-    const decryptedAuthSessionData = decrypt(authSessionData);
-    if (!decryptedAuthSessionData) {
-      localStorage.clear();
-      window.location.replace("/");
-      return;
-    }
-
-    const parsedAuthSessionData = JSON.parse(decryptedAuthSessionData);
-    const { access_token } = parsedAuthSessionData?.session;
-
-    const decryptedUserDevice = decrypt(userDevice);
-    const headers: any = { Authorization: access_token };
-    if (decryptedUserDevice) headers["User-Device"] = decryptedUserDevice;
-
-    const response = await fetch('/api/auth-verify-data', { method: 'GET', headers });
-    if (!response.ok) {
-      localStorage.clear();
-      window.location.replace("/");
-      return;
+    const response = await fetch( `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/verify-auth-data/${authSessions.session.access_token}`, { method: 'GET', headers } );
+    if (!response.ok || response.status !== 200) {
+      clearAuthData();
+      return { status: 'unauthenticated', user: null, session: null };
     }
 
     const data = await response.json();
-    if (!data?.success) {
-      localStorage.clear();
-      window.location.replace("/");
-      return;
-    }
+    return { status: 'authenticated', user: data?.data?.user, session: data?.data.session };
 
-    localStorage.setItem("auth_session_data", encrypt(JSON.stringify(data?.data)));
-    return { administration: data?.data?.administration, session: data?.data?.session };
-  } catch (error: any) {
-    console.log(error);
-    localStorage.clear();
-    window.location.replace("/");
+  } catch (error) {
+    console.error('Auth verification error:', error);
+    clearAuthData();
+    return { status: 'unauthenticated', session: null, user: null };
   }
 };
 

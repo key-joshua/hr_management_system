@@ -61,7 +61,6 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.11.4",
     "@types/aos": "^3.0.7",
     "@types/bcrypt": "^5.0.2",
     "@types/dotenv": "^6.1.1",

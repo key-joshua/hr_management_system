@@ -1,6 +1,12 @@
+"use client"
+
+import { useState } from "react"
 import Image from "next/image"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { NewJob } from "./new-job"
+import { NewCandidate } from "./new-candidate"
+import { Modal } from "@mui/material";
 
 const overviewData = [
   {
@@ -63,14 +69,44 @@ const overviewData = [
 
 
 export function Overview() {
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+  const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
+  const handleJobModal = (action: boolean) => setIsJobModalOpen(action);
+  const handleCandidateModal = (action: boolean) => setIsCandidateModalOpen(action);
+
   return (
     <div className="p-6 rounded-lg">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12 space-y-4 sm:space-y-0">
         <h2 className="text-2xl font-bold text-primary-active">Overview</h2>
         <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 text-white-active">
-          <Button className="bg-primary-semi-active hover:bg-primary-mini-active text-white"> <span className="w-6 h-6 rounded-full flex items-center justify-center text-center border border-white-active"> <Plus className="h-4 w-4" /> </span> Add Candidate </Button>
-          <Button className="bg-primary-semi-active hover:bg-primary-mini-active text-white"> <span className="w-6 h-6 rounded-full flex items-center justify-center text-center border border-white-active"> <Plus className="h-4 w-4" /> </span> Add Job </Button>
+          <Button className="bg-primary-semi-active hover:bg-primary-mini-active text-white" onClick={() => handleCandidateModal(true)}> <span className="w-6 h-6 rounded-full flex items-center justify-center text-center border border-white-active"> <Plus className="h-4 w-4" /> </span> Add Candidate </Button>
+          <Button className="bg-primary-semi-active hover:bg-primary-mini-active text-white" onClick={() => handleJobModal(true)}> <span className="w-6 h-6 rounded-full flex items-center justify-center text-center border border-white-active"> <Plus className="h-4 w-4" /> </span> Add Job </Button>
         </div>
+        <Modal
+          open={isJobModalOpen}
+          onClose={() => handleJobModal(false)}
+          keepMounted
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <NewJob handleModal={handleJobModal} />
+        </Modal>
+
+        <Modal
+          open={isCandidateModalOpen}
+          onClose={() => handleCandidateModal(false)}
+          keepMounted
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <NewCandidate handleModal={handleCandidateModal} />
+        </Modal>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">

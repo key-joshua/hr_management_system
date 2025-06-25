@@ -4,6 +4,9 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Home, BriefcaseBusiness, Users, FileText, CalendarDays, LogOut } from "lucide-react"
 
+import { getAuthSessions } from "@/libs/utils/utils"
+import { APIsRequest } from "@/libs/requestAPIs/requestAPIs"
+
 const navigationItems = [
   {
     name: "Home",
@@ -37,9 +40,20 @@ export function Sidebar() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = `/`;
+    const authSessionData = getAuthSessions();
+    if (!authSessionData || !authSessionData.session || !authSessionData.session.access_token || !authSessionData.device) {
+      window.location.href = `/`;
+      return;
+    }
+    try {
+          await APIsRequest.signoutRequest(authSessionData.session.access_token, authSessionData.device);
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.href = `/`;
+        } catch (error: any) {
+          window.location.href = `/`;
+          return;
+        }
   }
 
   return (
