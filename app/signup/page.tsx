@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import React, { useState } from "react"
 import { usePathname } from "next/navigation"
+import { useGoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 
 import { Eye, EyeOff } from "lucide-react"
 import { Label } from "@/components/ui/label"
@@ -11,14 +12,16 @@ import { Button } from "@/components/ui/button"
 import { ButtonLoader } from "@/components/Loader"
 import AvatarUpload from "@/components/AvatarUpload"
 import MessageAlert from "@/components/messageAlert"
-import { signupValidation } from "@/libs/utils/utils"
 import { Card, CardContent } from "@/components/ui/card"
+import { APIsRequest } from "@/libs/requestAPIs/requestAPIs"
+import { decrypt, generateDeviceId, signupValidation } from "@/libs/utils/utils"
 
-export default function Signup() {
+const Signup = () => {
   const pathname = usePathname()
   const [showPassword, setShowPassword] = useState(false)
-  const [buttonLoading, setButtonLoading] = useState(true)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [normalButtonIsLoading, setNormalButtonIsLoading] = useState(false)
+  const [googleButtonIsLoading, setGoogleButtonIsLoading] = useState(false)
   const [alertDetails, setAlertDetails] = useState<{ status: '' | 'error' | 'success'; message: string; id: any }>({ status: '', message: '', id: 0 })
   const [formData, setFormData] = useState<{ file: File | null; firstname: string; lastname: string; email: string; password: string; confirmPassword: string; }>({ file: null, firstname: "", lastname: "", email: "", password: "",  confirmPassword: "" })
 
@@ -31,18 +34,92 @@ export default function Signup() {
     setFormData(prev => ({ ...prev, file }))
   }
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    setButtonLoading(true)
+    setNormalButtonIsLoading(true)
     const validation = signupValidation(formData)
+    setAlertDetails({ status: '', message: '', id: 0 })
+    const userDevice = localStorage.getItem('user_device');
+    const decryptUserDevice = userDevice ? decrypt(userDevice) : generateDeviceId();
 
     if (validation.error) {
       setAlertDetails({ status: 'error', message: validation.message || 'An error occurred', id: Date.now() });
+      setNormalButtonIsLoading(false)
       return
     }
+    
+    try {
+      const response = await APIsRequest.signupRequest(decryptUserDevice, {...formData, username: `${formData?.firstname} ${formData?.lastname}`, is_google: false });
+      const data = await response.json();
 
-    console.log("Login attempt:", { ...formData })
+      if (!response.ok) {
+        setAlertDetails({ status: 'error', message: data.error || 'An error occurred', id: Date.now() });
+        setNormalButtonIsLoading(false)
+        return;
+      }
+
+      setNormalButtonIsLoading(false)
+      localStorage.setItem('user_session', JSON.stringify(data?.data?.session));
+      setAlertDetails({ status: 'success', message: data.message || 'Success', id: Date.now() });
+      setFormData({ file: null, firstname: "", lastname: "", email: "", password: "", confirmPassword: "" });
+    } catch (error: any) {
+        setAlertDetails({ status: 'error', message: error?.message || error?.error || 'An error occurred', id: Date.now() });
+        setNormalButtonIsLoading(false)
+        return;
+    }
   }
+
+  const googleSignup = useGoogleLogin({
+      onSuccess: async (response) => {
+    try {
+      setGoogleButtonIsLoading(true)
+      setAlertDetails({ status: '', message: '', id: 0 })
+      const userDevice = localStorage.getItem('user_device');
+      const decryptUserDevice = userDevice ? decrypt(userDevice) : generateDeviceId();
+      const googleResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { method: 'GET', headers: { Authorization: `Bearer ${response.access_token}` } });
+      
+      if (!googleResponse.ok) {
+          const errorText = await googleResponse.text();
+        
+          setAlertDetails({ status: 'error', message: `Error: ${errorText}` || 'An error occurred', id: Date.now() });
+          setGoogleButtonIsLoading(false)
+          return;
+      }
+
+      const googleData = await googleResponse.json();
+      const googleDataBody = { file: formData?.file, email: googleData?.email, username: googleData?.name, is_google: true, };
+
+      try {
+        const response = await APIsRequest.signupRequest(decryptUserDevice, googleDataBody);
+        const data = await response.json();
+  
+        if (!response.ok) {
+          setAlertDetails({ status: 'error', message: data.error || 'An error occurred', id: Date.now() });
+          setGoogleButtonIsLoading(false)
+          return;
+        }
+
+        setGoogleButtonIsLoading(false)
+        window.location.href = `/dashboard`;
+        localStorage.setItem('user_session', JSON.stringify(data?.data?.session));
+        setAlertDetails({ status: 'success', message: data.message || 'Success', id: Date.now() });
+      } catch (error: any) {
+        setAlertDetails({ status: 'error', message: error?.message || error?.error || 'An error occurred', id: Date.now() });
+        setGoogleButtonIsLoading(false)
+        return;
+      }
+    } catch (error: any) {
+        setAlertDetails({ status: 'error', message: error?.message || error?.error || 'An error occurred', id: Date.now() });
+        setGoogleButtonIsLoading(false)
+        return;
+    }
+  },
+  onError: (error: any) => {
+    setAlertDetails({ status: 'error', message: error?.message || error?.error || 'An error occurred', id: Date.now() });
+    setGoogleButtonIsLoading(false)
+    return;
+    },
+  });
 
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center bg-white-semi-active" >
@@ -133,15 +210,15 @@ export default function Signup() {
                   </div>
 
                   <div className="space-y-4 pt-2">
-                    <Button onClick={(event) => handleSubmit(event)} type="submit" className="w-full h-12 font-semibold rounded-lg text-white-active bg-secondary-active hover:text-white-active hover:bg-secondary-semi-active transition-colors" >
-                      { buttonLoading ? <ButtonLoader /> : "Sign Up" }
-                    </Button>
+                      <Button disabled={normalButtonIsLoading} onClick={(event) => handleSubmit(event)} type="submit" className="w-full h-12 font-semibold rounded-lg text-white-active bg-secondary-active hover:text-white-active hover:bg-secondary-semi-active transition-colors" >
+                        { normalButtonIsLoading ? <ButtonLoader /> : "Signup" }
+                      </Button>
 
-                    <Button type="button" variant="outline" className="w-full h-12 border-primaryBlue font-semibold rounded-lg text-white-active bg-primary-semi-active hover:text-white-active hover:bg-primary-mini-active transition-colors" >
-                      <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24"> <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" /> <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /> <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /> <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /> </svg>
-                      Signup with Google
-                    </Button>
-                  </div>
+                      <Button disabled={googleButtonIsLoading} onClick={() => googleSignup()} type="button" variant="outline" className="w-full h-12 border-primaryBlue font-semibold rounded-lg text-white-active bg-primary-semi-active hover:text-white-active hover:bg-primary-mini-active transition-colors" >
+                        <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24"> <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" /> <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /> <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /> <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /> </svg>
+                        { googleButtonIsLoading ? <ButtonLoader /> : "Signup with Google" }
+                      </Button>
+                    </div>
                 </form>
               </div>
             </div>
@@ -158,3 +235,12 @@ export default function Signup() {
     </div>
   )
 }
+
+const SignupPage = () => (
+  <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID : ''}>
+    <Signup />
+  </GoogleOAuthProvider>
+);
+SignupPage.displayName = "Signup";
+
+export default SignupPage;

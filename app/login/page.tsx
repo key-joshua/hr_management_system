@@ -190,7 +190,7 @@ const Login = () => {
                           <Label htmlFor="remember" className="text-sm text-primary-semi-active font-medium">Remember</Label>
                         </div>
                         <button type="button" className="text-sm text-primary-semi-active hover:text-primary-active underline font-medium transition-colors" >
-                          <Link href="/verification-mail">Forgot Password?</Link>
+                          <Link href="/verification-email">Forgot Password?</Link>
                         </button>
                       </div>
 
@@ -222,4 +222,11 @@ const Login = () => {
   )
 }
 
-export default () => (<GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID : ''}> <Login /> </GoogleOAuthProvider>);
+const LoginPage = () => (
+  <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID : ''}>
+    <Login />
+  </GoogleOAuthProvider>
+);
+
+LoginPage.displayName = "Login";
+export default LoginPage;

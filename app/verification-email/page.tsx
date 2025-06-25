@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { ButtonLoader } from "@/components/Loader"
 import MessageAlert from "@/components/messageAlert"
-import { EmailValidation } from "@/libs/utils/utils"
 import { Card, CardContent } from "@/components/ui/card"
+import { APIsRequest } from "@/libs/requestAPIs/requestAPIs"
+import { decrypt, EmailValidation, generateDeviceId } from "@/libs/utils/utils"
 
 
-export default function VerificationMail() {
+export default function VerificationEmail() {
   const pathname = usePathname()
   const [formData, setFormData] = useState({ email: "" })
   const [buttonLoading, setButtonLoading] = useState(false)
@@ -23,18 +24,40 @@ export default function VerificationMail() {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value, }))
   }
-
-  const handleSubmit = (event: React.FormEvent) => {
+  
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setButtonLoading(true)
     const validation = EmailValidation(formData)
+    setAlertDetails({ status: '', message: '', id: 0 })
+    const userDevice = localStorage.getItem('user_device');
+    const decryptUserDevice = userDevice ? decrypt(userDevice) : generateDeviceId();
 
     if (validation.error) {
       setAlertDetails({ status: 'error', message: validation.message || 'An error occurred', id: Date.now() });
+      setButtonLoading(false)
       return
     }
+    
+    try {
+      const response = await APIsRequest.sendVerificationLinkRequest(decryptUserDevice, 'resetPassword', formData);
+      const data = await response.json();
 
-    console.log("Login attempt:", { ...formData })
+      if (!response.ok) {
+        setAlertDetails({ status: 'error', message: data.error || 'An error occurred', id: Date.now() });
+        setButtonLoading(false)
+        return;
+      }
+
+      setButtonLoading(false)
+      setFormData({ email: '' })
+      localStorage.setItem('user_session', JSON.stringify(data?.data?.session));
+      setAlertDetails({ status: 'success', message: data.message || 'Success', id: Date.now() });
+    } catch (error: any) {
+        setAlertDetails({ status: 'error', message: error?.message || error?.error || 'An error occurred', id: Date.now() });
+        setButtonLoading(false)
+        return;
+    }
   }
 
   return (
@@ -101,7 +124,7 @@ export default function VerificationMail() {
                   </div>
 
                   <div className="space-y-4 pt-2">
-                    <Button onClick={(event) => handleSubmit(event)} type="submit" className="w-full h-12 font-semibold rounded-lg text-white-active bg-secondary-active hover:text-white-active hover:bg-secondary-semi-active transition-colors" >
+                    <Button disabled={buttonLoading} onClick={(event) => handleSubmit(event)} type="submit" className="w-full h-12 font-semibold rounded-lg text-white-active bg-secondary-active hover:text-white-active hover:bg-secondary-semi-active transition-colors" >
                       { buttonLoading ? <ButtonLoader /> : "Send Verification Mail" }
                     </Button>
                   </div>

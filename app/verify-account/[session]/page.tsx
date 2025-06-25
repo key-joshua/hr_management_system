@@ -2,25 +2,43 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import React, { useState } from "react"
 import { useParams } from "next/navigation"
+import React, { useEffect, useState } from "react";
 
 import { ButtonLoader } from "@/components/Loader"
 import MessageAlert from "@/components/messageAlert"
 import { Card, CardContent } from "@/components/ui/card"
-
+import { APIsRequest } from "@/libs/requestAPIs/requestAPIs";
 
 export default function ResetPassword() {
   const { session } = useParams()
-  const [buttonLoading, setButtonLoading] = useState(false)
-  const [alertDetails, setAlertDetails] = useState<{ status: '' | 'error' | 'success'; message: string; id: any }>({ status: 'success', message: 'Things is going to work out', id: 0 })
+  const [buttonLoading, setButtonLoading] = useState(true)
+  const [alertDetails, setAlertDetails] = useState<{ status: '' | 'error' | 'success'; message: string; id: any }>({ status: '', message: '', id: 0 })
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault()
-    setButtonLoading(true)
+  useEffect(() => {
+    const verifyAccount = async () => {
+      try {
+        const response = await APIsRequest.verifyAccountRequest(session as string);
+        const data = await response.json();
+  
+        if (!response.ok) {
+          setAlertDetails({ status: 'error', message: data.error || 'An error occurred', id: Date.now() });
+          setButtonLoading(false)
+          return;
+        }
+  
+        setButtonLoading(false)
+        setTimeout(() =>  window.location.href = `/login`, 3000);
+        setAlertDetails({ status: 'success', message: data.message || 'Success', id: Date.now() });
+      } catch (error: any) {
+          setAlertDetails({ status: 'error', message: error?.message || error?.error || 'An error occurred', id: Date.now() });
+          setButtonLoading(false)
+          return;
+      }
+    }
 
-    console.log("Session:", session)
-  }
+    verifyAccount();
+  }, [session]);
 
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center bg-white-semi-active" >
@@ -40,7 +58,7 @@ export default function ResetPassword() {
 
                      <div className="w-full flex justify-center mb-4">
                         { buttonLoading
-                            ? <ButtonLoader color="#082777" />
+                            ? <ButtonLoader color="#4B93E7" />
                             : <div className="space-y-2"> <MessageAlert status={alertDetails.status} message={alertDetails.message} id={alertDetails.id} /> </div>
                         }
                         

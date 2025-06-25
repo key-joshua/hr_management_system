@@ -11,7 +11,7 @@ export default function MessageAlert({ status, message, id }: MessageAlertProps)
     if (status && message) {
       setVisible(false);
       const show = setTimeout(() => setVisible(true), 10);
-      const hide = setTimeout(() => setVisible(false), 5000);
+      const hide = setTimeout(() => setVisible(false), 3000);
       return () => {
         clearTimeout(show);
         clearTimeout(hide);

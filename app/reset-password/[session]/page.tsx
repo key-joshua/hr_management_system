@@ -12,7 +12,7 @@ import { ButtonLoader } from "@/components/Loader"
 import MessageAlert from "@/components/messageAlert"
 import { Card, CardContent } from "@/components/ui/card"
 import { resetPasswordValidation } from "@/libs/utils/utils"
-
+import { APIsRequest } from "@/libs/requestAPIs/requestAPIs"
 
 export default function ResetPassword() {
   const { session } = useParams()
@@ -26,19 +26,39 @@ export default function ResetPassword() {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value, }))
   }
-
-  const handleSubmit = (event: React.FormEvent) => {
+ 
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setButtonLoading(true)
+    setAlertDetails({ status: '', message: '', id: 0 })
     const validation = resetPasswordValidation(formData)
 
     if (validation.error) {
       setAlertDetails({ status: 'error', message: validation.message || 'An error occurred', id: Date.now() });
+      setButtonLoading(false)
       return
     }
+    
+    try {
+      const response = await APIsRequest.resetPasswordRequest(session, formData);
+      const data = await response.json();
 
-    console.log("Session:", session)
-    console.log("Login attempt:", { ...formData })
+      if (!response.ok) {
+        setAlertDetails({ status: 'error', message: data.error || 'An error occurred', id: Date.now() });
+        setButtonLoading(false)
+        return;
+      }
+
+      setButtonLoading(false)
+      setFormData({ password: "",  confirmPassword: "" })
+        setTimeout(() =>  window.location.href = `/login`, 3000);
+      localStorage.setItem('user_session', JSON.stringify(data?.data?.session));
+      setAlertDetails({ status: 'success', message: data.message || 'Success', id: Date.now() });
+    } catch (error: any) {
+        setAlertDetails({ status: 'error', message: error?.message || error?.error || 'An error occurred', id: Date.now() });
+        setButtonLoading(false)
+        return;
+    }
   }
 
   return (

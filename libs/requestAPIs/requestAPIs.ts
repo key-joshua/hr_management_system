@@ -1,14 +1,16 @@
 export const APIsRequest = {
   signupRequest: async (deviceId: string, data: any) => {
-	const formData = new FormData();
-	formData.append('firstname', data.firstname);
-	formData.append('lastname', data.lastname);
-	formData.append('mail', data.mail);
-	formData.append('password', data.password);
-	data?.file && formData.append('file', data.file);
+    data.confirmPassword && delete data.confirmPassword;
 
-    const headers =  { 'User-Device': deviceId, 'Content-Type': 'application/json' };
-	return await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/signup`, { body: formData, method: 'POST', headers });
+    const formData = new FormData();
+    formData.append('email', data.email);
+    formData.append('is_google', data.is_google);
+    data?.file && formData.append('file', data.file);
+    data.username && formData.append('username', data.username);
+    data.password && formData.append('password', data.password);
+
+    const headers =  { 'User-Device': deviceId };
+	  return await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/signup`, { body: formData, method: 'POST', headers });
   },
 
   signinRequest: async (deviceId: string, data: any) => {
@@ -21,7 +23,9 @@ export const APIsRequest = {
   },
 
   resetPasswordRequest: async (session: any,  data: any) => {
-    return await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/reset-password/${session}`, { body: JSON.stringify(data), method: 'PATCH' });
+    data.confirmPassword && delete data.confirmPassword;
+    const headers =  { 'Content-Type': 'application/json' };
+    return await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/reset-password/${session}`, { body: JSON.stringify(data), method: 'PATCH' , headers});
   },
 
   sendVerificationLinkRequest: async (deviceId: string, action: string, data: any) => {

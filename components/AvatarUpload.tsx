@@ -32,7 +32,7 @@ export default function AvatarUpload({ onFileSelect }: { onFileSelect: (file: Fi
         )}
 
         {isHovering && (
-          <div className="absolute inset-0 bg-primary-semi-active bg-opacity-70 flex items-center justify-center"> <Plus className="w-6 h-6 text-white" /> </div>
+          <div className="absolute inset-0 bg-primary-semi-active bg-opacity-70 flex items-center justify-center"> <Plus className="w-6 h-6 text-white-active" /> </div>
         )}
       </div>
 
