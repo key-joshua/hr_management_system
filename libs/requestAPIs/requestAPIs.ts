@@ -31,10 +31,10 @@ export const APIsRequest = {
     return await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/send-verification-link/${action}`, { body: JSON.stringify(data), method: 'POST', headers });
   },
 
-	signoutRequest: async (session: string, deviceId: string) => {
-		const headers =  { Authorization: `Bearer ${session}`, 'User-Device': deviceId, 'Content-Type': 'application/json' };
-		return await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/signout`, { method: 'DELETE', headers });
-	},
+  signoutRequest: async (session: string, deviceId: string) => {
+    const headers = { Authorization: `Bearer ${session}`, 'User-Device': deviceId, 'Content-Type': 'application/json' };
+    return await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/signout`, { method: 'DELETE', headers });
+  },
 
   // JOBS RELATED APIS
   createJobRequest: async (data: any) => {
@@ -46,11 +46,10 @@ export const APIsRequest = {
     const headers = {
       'Authorization': `Bearer ${authSessions.session.access_token}`,
       'User-Device': authSessions.device,
-      'Content-Type': 'application/json'
     };
 
-    return await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/jobs`, {
-      body: JSON.stringify(data),
+    return await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/jobs/create-job`, {
+      body: data,
       method: 'POST',
       headers
     });
@@ -84,21 +83,21 @@ export const APIsRequest = {
     });
   },
 
-  updateJobRequest: async (token: string, deviceId: string, jobId: string, data: any) => {
+  updateJobRequest: async (jobId: string, data: any) => {
     const authSessions = getAuthSessions();
     const headers = {
       'Authorization': `Bearer ${authSessions?.session?.access_token || ""}`,
       'User-Device': authSessions?.device || "",
       'Content-Type': 'application/json'
     };
-    return await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/jobs/${jobId}`, {
+    return await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/jobs/update-job/${jobId}`, {
       body: JSON.stringify(data),
       method: 'PATCH',
       headers
     });
   },
 
-  deleteJobRequest: async (token: string, deviceId: string, jobId: string) => {
+  deleteJobRequest: async (jobId: string) => {
     const authSessions = getAuthSessions();
     const headers = {
       'Authorization': `Bearer ${authSessions?.session?.access_token || ""}`,

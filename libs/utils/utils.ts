@@ -74,7 +74,7 @@ export const authVerify = async (): Promise<{
       'User-Device': authSessions.device
     };
 
-    const response = await fetch( `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/verify-auth-data/${authSessions.session.access_token}`, { method: 'GET', headers } );
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/verify-auth-data/${authSessions.session.access_token}`, { method: 'GET', headers });
     if (!response.ok || response.status !== 200) {
       clearAuthData();
       return { status: 'unauthenticated', user: null, session: null };
@@ -208,3 +208,4 @@ export function EmailValidation(formData: { email: string; }): { error: boolean;
 
   return { error: false };
 }
+

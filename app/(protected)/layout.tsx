@@ -1,17 +1,13 @@
 'use client'
 
-import { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useState, Suspense } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { authVerify } from '@/libs/utils/utils';
 
-export default function ProtectedLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+function ProtectedContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [authStatus, setAuthStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
 
   useLayoutEffect(() => {
@@ -39,4 +35,16 @@ export default function ProtectedLayout({
   if (authStatus === 'unauthenticated') return null;
 
   return <>{children}</>;
+}
+
+export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="loader"></div>
+      </div>
+    }>
+      <ProtectedContent>{children}</ProtectedContent>
+    </Suspense>
+  );
 }

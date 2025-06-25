@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { APIsRequest } from '@/libs/requestAPIs/requestAPIs';
 
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
   data: T | null;
   loading: boolean;
   error: string | null;

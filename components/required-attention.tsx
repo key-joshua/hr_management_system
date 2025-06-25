@@ -1,106 +1,52 @@
 "use client"
 
-import { useState } from "react"
-
-const jobsData = [
-  {
-    id: 1,
-    title: "Senior Data Analyst",
-    daysAgo: "100 days ago",
-    positionsLeft: 3,
-    applications: 123,
-    interviewed: 40,
-    rejected: 33,
-    feedbackPending: 7,
-    offered: 2,
-  },
-  {
-    id: 2,
-    title: "Junior Data Analyst",
-    daysAgo: "78 days ago",
-    positionsLeft: 7,
-    applications: 567,
-    interviewed: 22,
-    rejected: 20,
-    feedbackPending: 2,
-    offered: 4,
-  },
-  {
-    id: 3,
-    title: "Product Designer",
-    daysAgo: "56 days ago",
-    positionsLeft: 2,
-    applications: 201,
-    interviewed: 32,
-    rejected: 18,
-    feedbackPending: 14,
-    offered: 0,
-  },
-  {
-    id: 4,
-    title: "Java Developer",
-    daysAgo: "46 days ago",
-    positionsLeft: 5,
-    applications: 231,
-    interviewed: 23,
-    rejected: 10,
-    feedbackPending: 13,
-    offered: 3,
-  },
-  {
-    id: 5,
-    title: "Product Manager",
-    daysAgo: "13 days ago",
-    positionsLeft: 3,
-    applications: 67,
-    interviewed: 41,
-    rejected: 22,
-    feedbackPending: 19,
-    offered: 1,
-  },
-]
+import { Job, useJobs } from "@/hooks/useJobs";
+import { useEffect, useState } from "react";
 
 const candidatesData = [
   {
-    id: 1,
-    title: "John Smith",
+    _id: 1,
+    job_title: "John Smith",
     daysAgo: "5 days ago",
-    positionsLeft: 1,
+    positions_left: 1,
     applications: 3,
     interviewed: 2,
-    rejected: 0,
-    feedbackPending: 1,
+    rejections: 0,
+    pending_feedback: 1,
     offered: 0,
   },
   {
-    id: 2,
-    title: "Sarah Johnson",
+    _id: 2,
+    job_title: "Sarah Johnson",
     daysAgo: "12 days ago",
-    positionsLeft: 2,
+    positions_left: 2,
     applications: 5,
     interviewed: 3,
-    rejected: 1,
-    feedbackPending: 2,
-    offered: 1,
+    rejections: 1,
+    pending_feedback: 2,
+    offers: 1,
   },
 ]
 
 const onboardingsData = [
   {
-    id: 1,
-    title: "New Hire Orientation",
+    _id: 1,
+    job_title: "New Hire Orientation",
     daysAgo: "2 days ago",
-    positionsLeft: 5,
+    positions_left: 5,
     applications: 15,
     interviewed: 12,
-    rejected: 2,
-    feedbackPending: 3,
-    offered: 8,
+    rejections: 2,
+    pending_feedback: 3,
+    offers: 8,
   },
 ]
 
 export function RequireAttention() {
+  const { data, getJobs } = useJobs();
   const [activeTab, setActiveTab] = useState("jobs")
+
+  useEffect(() => { getJobs() }, []);
 
   const getCurrentData = () => {
     switch (activeTab) {
@@ -109,7 +55,7 @@ export function RequireAttention() {
       case "onboardings":
         return onboardingsData
       default:
-        return jobsData
+        return data as Job[] || []
     }
   }
 
@@ -125,7 +71,7 @@ export function RequireAttention() {
 
       <div className="flex space-x-8 mb-6">
         {tabs.map((tab) => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`pb-2 text-sm font-medium transition-colors relative ${ activeTab === tab.id ? "text-gray-900 border-b-2 border-yellow-400" : "text-gray-500 hover:text-gray-700" }`} > {tab.label} </button>
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`pb-2 text-sm font-medium transition-colors relative ${activeTab === tab.id ? "text-gray-900 border-b-2 border-yellow-400" : "text-gray-500 hover:text-gray-700"}`} > {tab.label} </button>
         ))}
       </div>
 
@@ -143,26 +89,26 @@ export function RequireAttention() {
             </tr>
           </thead>
           <tbody>
-            {getCurrentData().map((item, index) => (
-              <tr key={item.id} className="cursor-pointer border-b border-[#e5edf9] hover:bg-primary-micro-active animate-fade-up animation-fill-forwards" style={{ animationDelay: `${index * 100}ms`, animationDuration: "500ms" }}>
+            {getCurrentData() && getCurrentData().map((item, index) => (
+              <tr key={item._id} className="cursor-pointer border-b border-[#e5edf9] hover:bg-primary-micro-active animate-fade-up animation-fill-forwards" style={{ animationDelay: `${index * 100}ms`, animationDuration: "500ms" }}>
                 <td className="py-4 px-4">
-                    <div className="flex items-center">
-                        <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
-                            <img src={`${activeTab === 'candidates' ? "/user-avatar.png?height=40&width=40" : "/job-position-avatar.svg?height=40&width=40"}`} alt="Avatar" width={40} height={40} className="w-full h-full object-cover" />
-                        </div>
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
+                      <img src={`${activeTab === 'candidates' ? "/user-avatar.png?height=40&width=40" : "/job-position-avatar.svg?height=40&width=40"}`} alt="Avatar" width={40} height={40} className="w-full h-full object-cover" />
+                    </div>
 
-                        <div>
-                            <div className="font-medium text-gray-900">{item.title}</div>
-                            <div className="text-sm text-gray-500">{item.daysAgo}</div>
-                        </div>
+                    <div>
+                      <div className="font-medium text-gray-900">{item.job_title}</div>
+                      <div className="text-sm text-gray-500">5 days ago</div>
+                    </div>
                   </div>
                 </td>
-                <td className="py-4 px-4 text-center font-medium text-gray-900">{item.positionsLeft}</td>
+                <td className="py-4 px-4 text-center font-medium text-gray-900">{item.positions_left}</td>
                 <td className="py-4 px-4 text-center text-gray-600">{item.applications}</td>
                 <td className="py-4 px-4 text-center text-gray-600">{item.interviewed}</td>
-                <td className="py-4 px-4 text-center text-gray-600">{item.rejected}</td>
-                <td className="py-4 px-4 text-center text-gray-600">{item.feedbackPending}</td>
-                <td className="py-4 px-4 text-center font-medium text-gray-900">{item.offered}</td>
+                <td className="py-4 px-4 text-center text-gray-600">{item.rejections}</td>
+                <td className="py-4 px-4 text-center text-gray-600">{item.pending_feedback}</td>
+                <td className="py-4 px-4 text-center font-medium text-gray-900">{item.offers}</td>
               </tr>
             ))}
           </tbody>
