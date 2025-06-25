@@ -7,7 +7,7 @@
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
-    "build": "next build && next export",
+    "build": "next build",
     "createAllTables": "npx sequelize db:migrate",
     "createAllSeeds": "npx sequelize db:seed:all",
     "deleteAllSeeds": "npx sequelize db:seed:undo:all",
