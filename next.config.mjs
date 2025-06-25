@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['sequelize', 'sequelize-typescript'],
-  },
   images: {
     remotePatterns: [
       {
@@ -15,6 +12,10 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    appDir: true,
+  },
+  reactStrictMode: true,
 };
 
 export default nextConfig;
