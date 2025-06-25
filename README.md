@@ -1,7 +1,7 @@
 # HR MANAGEMENT SYSTEM
 
 - This is A robust frontend for managing human resource operations, including candidates data.
-- Access Hosted URL:  https://hr-management-system.netlify.app
+- Access Hosted URL: https://hr-management-system-seven.vercel.app
 
 ## INSTALLATION
 
