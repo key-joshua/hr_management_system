@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start",
     "build": "next build",
+    "start": "next start",
     "createAllTables": "npx sequelize db:migrate",
     "createAllSeeds": "npx sequelize db:seed:all",
     "deleteAllSeeds": "npx sequelize db:seed:undo:all",
@@ -61,6 +61,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.11.4",
     "@types/aos": "^3.0.7",
     "@types/bcrypt": "^5.0.2",
     "@types/dotenv": "^6.1.1",
