@@ -4,16 +4,17 @@ import React, { FormEvent, useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { X } from "lucide-react";
 import { Textarea } from "./ui/textarea";
-import { useJobs } from "@/hooks/useJobs";
+import { Job, useJobs } from "@/hooks/useJobs";
 import MessageAlert from "./messageAlert";
 import { ButtonLoader } from "./Loader";
 import { validateJob } from "@/libs/utils/job-validations";
 
 interface NewJobsProps {
   handleModal: (action: boolean) => void;
+  pushJobHandler: (job: Job) => void;
 }
 
-export const NewJob: React.FC<NewJobsProps> = ({ handleModal }) => {
+export const NewJob: React.FC<NewJobsProps> = ({ handleModal, pushJobHandler }) => {
 
   const [formData, setFormData] = useState({ title: "", description: "", positionLeft: "" });
 
@@ -59,6 +60,7 @@ export const NewJob: React.FC<NewJobsProps> = ({ handleModal }) => {
     if (jobData) {
       setAlert({ status: 'success', message: 'Job created successfully.', id: Date.now() });
       setFormData({ title: "", description: "", positionLeft: "" })
+      pushJobHandler(jobData as Job)
     }
   }, [jobError, jobData])
 

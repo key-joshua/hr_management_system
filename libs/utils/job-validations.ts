@@ -41,6 +41,13 @@ export const validateNumberRange = (
   fieldName: string,
   options: { min?: number; max?: number }
 ): ValidationResult => {
+  if (value < 0) {
+    return {
+      isValid: false,
+      message: `${fieldName} cannot be negative`,
+    };
+  }
+
   if (options.min !== undefined && value < options.min) {
     return {
       isValid: false,

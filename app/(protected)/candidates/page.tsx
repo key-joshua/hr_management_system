@@ -39,7 +39,7 @@ export default function HomePage() {
         <div className="ml-24 mt-20 mr-4 mb-4 pt-6 px-2">
           <h2 className="text-2xl font-bold text-primary-active mb-6">Candidate List</h2>
           <div className="pt-4 w-full overflow-x-auto bg-[#f3f8ff]">
-            <table className="min-w-[1100px]">
+            <table className="min-w-[1100px] w-full">
               <thead>
                 <tr>
                   <th className="text-center py-3 px-4 font-medium text-gray-500 text-sm">Candidate</th>

@@ -42,11 +42,13 @@ const onboardingsData = [
   },
 ]
 
-export function RequireAttention() {
-  const { data, getJobs } = useJobs();
+interface RequireAttentionProps {
+  jobs: Job[] | [];
+}
+
+export const RequireAttention: React.FC<RequireAttentionProps> = ({ jobs }) => {
   const [activeTab, setActiveTab] = useState("jobs")
 
-  useEffect(() => { getJobs() }, []);
 
   const getCurrentData = () => {
     switch (activeTab) {
@@ -55,7 +57,7 @@ export function RequireAttention() {
       case "onboardings":
         return onboardingsData
       default:
-        return data as Job[] || []
+        return jobs
     }
   }
 
@@ -89,7 +91,7 @@ export function RequireAttention() {
             </tr>
           </thead>
           <tbody>
-            {getCurrentData() && getCurrentData().map((item, index) => (
+            {getCurrentData() && getCurrentData().slice(0, 4).map((item, index) => (
               <tr key={item._id} className="cursor-pointer border-b border-[#e5edf9] hover:bg-primary-micro-active animate-fade-up animation-fill-forwards" style={{ animationDelay: `${index * 100}ms`, animationDuration: "500ms" }}>
                 <td className="py-4 px-4">
                   <div className="flex items-center">
@@ -98,7 +100,7 @@ export function RequireAttention() {
                     </div>
 
                     <div>
-                      <div className="font-medium text-gray-900">{item.job_title}</div>
+                      <div className="font-medium text-gray-900 max-w-[150px] truncate">{item.job_title}</div>
                       <div className="text-sm text-gray-500">5 days ago</div>
                     </div>
                   </div>

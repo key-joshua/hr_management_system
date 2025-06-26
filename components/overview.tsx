@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { NewJob } from "./new-job"
 import { NewCandidate } from "./new-candidate"
 import { Modal } from "@mui/material";
+import { Job } from "@/hooks/useJobs"
 
 const overviewData = [
   {
@@ -66,9 +67,11 @@ const overviewData = [
     image: "/project-allocation-pending.svg"
   },
 ]
+interface OverviewProps {
+  pushJobHandler: (jobData: Job) => void;
+}
 
-
-export function Overview() {
+export const Overview: React.FC<OverviewProps> = ({ pushJobHandler }) => {
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
   const handleJobModal = (action: boolean) => setIsJobModalOpen(action);
@@ -92,7 +95,7 @@ export function Overview() {
             justifyContent: "center",
           }}
         >
-          <NewJob handleModal={handleJobModal} />
+          <NewJob handleModal={handleJobModal} pushJobHandler={pushJobHandler} />
         </Modal>
 
         <Modal

@@ -59,7 +59,7 @@ export const EditJob: React.FC<EditJobProps> = ({ updateJobs, handleModal, job }
       offers: Number(formData?.offers),
     };
 
-    const validation = validateJob(jobUpdateData);
+    const validation = validateJob(jobUpdateData, { validateAllFields: true });
     if (!validation.isValid) {
       setAlert({
         status: "error",
